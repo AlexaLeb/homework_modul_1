@@ -89,6 +89,9 @@ class MLModel:
     def __init__(self, name):
         self.name = name  # Имя модели
 
+        def predict(self, data, budget_amount: float, preferences: dict) -> dict:
+            raise NotImplementedError("Метод predict должен быть реализован в наследниках")
+
 
 # Класс BudgetRecommendationModel наследуется от MLModel и реализует метод predict
 class BudgetRecommendationModel(MLModel):
@@ -196,12 +199,12 @@ if __name__ == "__main__":
     preferences = {"Food": 2, "Transport": 1, "Entertainment": 1}
     task = PredictionTask(1, user, 50000, preferences)
 
+    # Это полиморфизм?
     modelB = BudgetRecommendationModel('modelA')
     modelA = AlternativeBudgetModel('modelB')
 
     for model in [modelB, modelA]:
         task.run(model)
-        # Вывод результата, если задача выполнена успешно
         result = task.get_result()
         if result:
             print("\nРекомендованное распределение бюджета:")
