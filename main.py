@@ -12,16 +12,16 @@ import datetime
 
 # Класс пользователя
 class User:
-    def __init__(self, user_id: int, username: str, password: str, balance: float):
-        self.user_id = user_id            # Идентификатор пользователя
-        self.username = username          # Имя пользователя
-        self.password = password          # Пароль
-        self.balance = balance            # Баланс
-        self.transaction_history = []     # Список транзакций
-        self.prediction_tasks = []        # Список задач предсказания
+    def __init__(self, user_id: int, username: str, password: str):
+        self.user_id = user_id                  # Идентификатор пользователя
+        self.username = username                # Имя пользователя
+        self._hashed_password = self.hash_password(password)  # Хэшированный пароль
+        self.transaction_history = TransactionHistory()  # Отдельная сущность для истории транзакций
+        self.prediction_history = PredictionHistory()    # Отдельная сущность для истории предсказаний
+        self.is_admin = False
 
         # Приватный метод для хэширования пароля
-    def hash_password(self, password: str) -> bytes:
+    def hash_password(password: str) -> bytes:
         return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
         # Метод для проверки пароля
@@ -33,12 +33,54 @@ class User:
         self.hashed_password = self.hash_password(new_password)
 
 
+class AdminUser(User):
+    def __init__(self, user_id: int, username: str, password: str):
+        super().__init__(user_id, username, password)
+        self.is_admin = True
+
+    # Администратор может пополнять баланс любого пользователя
+    def modify_balance(self, balance_obj, amount: float):
+        balance_obj.deposit(amount)
+
+
 # Класс транзакции для истории операций
 class Transaction:
     def __init__(self, user: User, transaction_type: str, amount: float):
         self.user = user                      # Пользователь, к которому относится транзакция
         self.transaction_type = transaction_type  # Тип транзакции
         self.amount = amount                  # Сумма транзакции
+
+# Класс TransactionHistory для хранения истории транзакций пользователя
+class TransactionHistory:
+    def __init__(self):
+        self.transactions = []  # Список объектов Transaction
+
+    def add_transaction(self, transaction: Transaction):
+        self.transactions.append(transaction)
+
+    def get_all(self):
+        return self.transactions
+
+
+class Balance:
+    def __init__(self, user_id: int, amount: float = 0.0):
+        self.user_id = user_id
+        self._amount = amount
+
+    # Метод для пополнения баланса
+    def deposit(self, amount: float):
+        self._amount += amount
+
+    # Метод для списания баланса
+    def withdraw(self, amount: float):
+        if self._amount >= amount:
+            self._amount -= amount
+        else:
+            raise Exception("Недостаточно средств")
+
+    # Метод для получения текущего баланса
+    def get_amount(self) -> float:
+        return self._amount
 
 
 # Базовый класс ML модели
