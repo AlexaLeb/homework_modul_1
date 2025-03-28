@@ -6,6 +6,10 @@
 
 """
 
+import bcrypt
+import datetime
+
+
 # Класс пользователя
 class User:
     def __init__(self, user_id: int, username: str, password: str, balance: float):
@@ -16,20 +20,17 @@ class User:
         self.transaction_history = []     # Список транзакций
         self.prediction_tasks = []        # Список задач предсказания
 
-    # пополнение баланса
-    def deposit(self, amount: float):
-        self.balance += amount
-        transaction = Transaction(self, "deposit", amount)
-        self.transaction_history.append(transaction)
+        # Приватный метод для хэширования пароля
+    def hash_password(self, password: str) -> bytes:
+        return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
-    # списание средств с баланса
-    def withdraw(self, amount: float):
-        if self.balance >= amount:
-            self.balance -= amount
-            transaction = Transaction(self, "withdrawal", amount)
-            self.transaction_history.append(transaction)
-        else:
-            raise Exception("Недостаточно средств для списания")
+        # Метод для проверки пароля
+    def check_password(self, password: str) -> bool:
+        return bcrypt.checkpw(password.encode('utf-8'), self.hashed_password)
+
+        # Метод для смены пароля
+    def set_password(self, new_password: str):
+        self.hashed_password = self.hash_password(new_password)
 
 
 # Класс транзакции для истории операций
@@ -82,19 +83,41 @@ class PredictionTask:
             self.validation_errors.append("Отсутствует история транзакций пользователя")
             return
 
-        # Выполнение предсказания с помощью ML модели
-        self.result = model.predict(self.user.transaction_history, self.budget_amount, self.preferences)
+        recommended_distribution = model.predict(
+            self.user.transaction_history.get_all(),
+            self.budget_amount,
+            self.preferences
+        )
+        self.result = PredictionResult(self.task_id, recommended_distribution)
         self.status = "COMPLETED"
-        # Списание кредитов за выполнение задачи
-        try:
-            self.user.withdraw(5)
-        except Exception as e:
-            self.status = "ERROR"
-            self.validation_errors.append(str(e))
+        # Добавляем задачу в историю предсказаний пользователя
+        self.user.prediction_history.add_prediction(self)
+        # Добавляем транзакцию за списание условных кредитов (например, -5)
+        fee_transaction = Transaction(self.user.user_id, "prediction_fee", -5)
+        self.user.transaction_history.add_transaction(fee_transaction)
 
     # Метод для получения результата задачи
     def get_result(self):
         return self.result
+
+
+class PredictionResult:
+    def __init__(self, task_id: int, recommended_distribution: dict):
+        self.task_id = task_id
+        self.recommended_distribution = recommended_distribution
+        self.timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+# Класс PredictionHistory для хранения истории выполненных задач предсказания
+class PredictionHistory:
+    def __init__(self):
+        self.predictions = []  # Список объектов PredictionTask
+
+    def add_prediction(self, prediction_task: PredictionTask):
+        self.predictions.append(prediction_task)
+
+    def get_all(self):
+        return self.predictions
 
 
 # Пример использования объектной модели
