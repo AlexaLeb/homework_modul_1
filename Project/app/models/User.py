@@ -1,6 +1,4 @@
-import bcrypt
-from .TransactionHistory import TransactionHistory
-from .PredictionHistory import PredictionHistory
+
 
 
 # class User:
@@ -27,21 +25,35 @@ from .PredictionHistory import PredictionHistory
 # app/models/user.py
 from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.orm import relationship
+from sqlmodel import SQLModel
 from . import Base
+from typing import Optional, List
+from sqlmodel import SQLModel, Field, Relationship
 
 
-class User(Base):
+class User(SQLModel, table=True):
     __tablename__ = 'users'
 
-    id = Column(Integer, primary_key=True)
-    username = Column(String, unique=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    is_admin = Column(Boolean, default=False)
+    # Определяем поле id с типом Optional[int] и указываем, что оно является первичным ключом.
+    id: Optional[int] = Field(default=None, primary_key=True)
 
-    # Один к одному с балансом
-    balance = relationship("Balance", back_populates="user", uselist=False)
-    # Один ко многим с транзакциями
-    transactions = relationship("Transaction", back_populates="user", cascade="all, delete-orphan")
+    # Поле username с указанием дополнительных параметров через sa_column
+    username: str = Field(sa_column_kwargs={"unique": True, "nullable": False})
+
+    # Поле hashed_password, обязательное для заполнения
+    hashed_password: str = Field(sa_column_kwargs={"nullable": False})
+
+    # Флаг администратора, по умолчанию False
+    is_admin: bool = Field(default=False, sa_column_kwargs={"default": False})
+
+    # Определяем связь "один к одному" с балансом
+    balance: Optional["Balance"] = Relationship(back_populates="user")
+
+    # Определяем связь "один ко многим" с транзакциями, используем тип List для множественных записей
+    transactions: List["Transaction"] = Relationship(
+        back_populates="user",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
 
     def set_password(self, password: str):
         import bcrypt
@@ -50,22 +62,3 @@ class User(Base):
     def check_password(self, password: str) -> bool:
         import bcrypt
         return bcrypt.checkpw(password.encode('utf-8'), self.hashed_password.encode('utf-8'))
-
-    # --- Методы для работы с БД ---
-    @classmethod
-    def create(cls, session, username: str, password: str, is_admin: bool = False):
-        user = cls(username=username, hashed_password="")
-        user.set_password(password)
-        user.is_admin = is_admin
-        session.add(user)
-        session.commit()
-        return user
-
-    @classmethod
-    def get_all(cls, session):
-        return session.query(cls).all()
-
-    @classmethod
-    def get_by_username(cls, session, username: str):
-        return session.query(cls).filter_by(username=username).first()
-

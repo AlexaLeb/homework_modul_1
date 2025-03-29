@@ -1,3 +1,5 @@
 bcrypt==3.2.2
 sqlalchemy
 pydantic_settings
+sqlmodel
+psycopg2
