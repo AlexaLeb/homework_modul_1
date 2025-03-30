@@ -38,7 +38,7 @@ class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
 
     # Поле username с указанием дополнительных параметров через sa_column
-    username: str = Field(sa_column_kwargs={"unique": True, "nullable": False})
+    email: str = Field(sa_column_kwargs={"unique": True, "nullable": False})
 
     # Поле hashed_password, обязательное для заполнения
     hashed_password: str = Field(sa_column_kwargs={"nullable": False})
@@ -51,6 +51,12 @@ class User(SQLModel, table=True):
 
     # Определяем связь "один ко многим" с транзакциями, используем тип List для множественных записей
     transactions: List["Transaction"] = Relationship(
+        back_populates="user",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+
+    # Новая связь "один ко многим" с задачами предсказаний
+    prediction_tasks: List["PredictionTask"] = Relationship(
         back_populates="user",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )

@@ -30,15 +30,12 @@ def init_db():
         user.create_user(session, 'Admin', '13', True)
 
         dmb = balance.create(session, user_id=alex.id, initial_amount=1000)
-        balance.create(session, user_id=user.get_by_username(session, 'Nasta').id, initial_amount=800)
+        balance.create(session, user_id=user.get_by_email(session, 'Nasta').id, initial_amount=800)
         alex.balance = dmb
 
         transaction.create(session, user_id=alex.id, transaction_type='deposit', amount=200)
-        transaction.create(session, user_id=user.get_by_username(session, 'Nasta').id, transaction_type='withdraw', amount=100)
+        transaction.create(session, user_id=user.get_by_email(session, 'Nasta').id, transaction_type='withdraw', amount=100)
 
         session.commit()
         session.close()
         print('BD susseced updated')
-
-
-
