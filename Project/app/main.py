@@ -1,8 +1,9 @@
+from Project.app.database.database import get_session
 from database.database import engine
 from database.database import get_settings
 from database.database import init_db
 from sqlmodel import Session
-from models.crud.user import create_user, get_all_users, get_by_username
+from models.crud.user import create_user, get_all_users, get_by_email
 import models.crud.transaction as tr
 import models.crud.balance as balance
 from models.Balance import Balance
@@ -16,12 +17,12 @@ if __name__ == "__main__":
     init_db()
     print('init db success')
 
-    with Session(engine) as session:
-        create_user(session, "test1", "12", False)
-        balance.create(session, user_id=get_by_username(session, 'test1').id, initial_amount=100.0)
-        create_user(session, 'test2', "13", False)
-        balance.create(session, user_id=get_by_username(session, 'test2').id, initial_amount=80.0)
-        users = get_all_users(session)
+    session = next(get_session())
+    create_user(session, "test1", "12", False)
+    balance.create(session, user_id=get_by_email(session, 'test1').id, initial_amount=100.0)
+    create_user(session, 'test2', "13", False)
+    balance.create(session, user_id=get_by_email(session, 'test2').id, initial_amount=80.0)
+    users = get_all_users(session)
 
     for user in users:
         print(f'\nid {user.id} - {user.username}')
@@ -29,7 +30,7 @@ if __name__ == "__main__":
         print(user)
 
     # Получаем демо-пользователя по имени
-    demo_user = get_by_username(session, "test1")
+    demo_user = get_by_email(session, "test1")
     if not demo_user:
         print("Демо-пользователь не найден. Запустите init_db.py для инициализации базы.")
     else:

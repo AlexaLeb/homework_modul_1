@@ -24,18 +24,15 @@ def init_db():
     SQLModel.metadata.drop_all(engine)
     SQLModel.metadata.create_all(engine)
 
-    with Session(engine) as session:
-        alex = user.create_user(session, 'Alex', '11', False)
-        user.create_user(session, 'Nasta', '12', False)
-        user.create_user(session, 'Admin', '13', True)
+    session = next(get_session())
+    alex = user.create_user(session, 'Demo@mail.ru', '11', False)
+    user.create_user(session, 'Admin@demo.ru', '13', True)
 
-        dmb = balance.create(session, user_id=alex.id, initial_amount=1000)
-        balance.create(session, user_id=user.get_by_email(session, 'Nasta').id, initial_amount=800)
-        alex.balance = dmb
+    dmb = balance.create(session, user_id=alex.id, initial_amount=1000)
+    balance.create(session, user_id=user.get_by_email(session, 'Nasta').id, initial_amount=800)
+    alex.balance = dmb
 
-        transaction.create(session, user_id=alex.id, transaction_type='deposit', amount=200)
-        transaction.create(session, user_id=user.get_by_email(session, 'Nasta').id, transaction_type='withdraw', amount=100)
 
-        session.commit()
-        session.close()
-        print('BD susseced updated')
+    session.commit()
+    session.close()
+    print('BD susseced updated')
