@@ -2,13 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 # Импорт сервисных функций для предсказаний и баланса
-from models.crud.predictiontask import create as create_prediction_task, \
+from models.crud.prediction_task import create as create_prediction_task, \
     get_by_user_id as get_prediction_tasks_by_user
-from models.crud.predictionresult import create as create_prediction_result
+from models.crud.prediction_result import create as create_prediction_result
 from models.crud.balance import get_by_user_id as get_balance, create as create_balance
 
 # Зависимость для получения сессии базы данных
 from database.database import get_session
+
+from models.PredictionRpcClient import PredictionRpcClient
 
 router = APIRouter()
 
@@ -37,6 +39,16 @@ async def predict(user_id: int, budget_amount: float, preferences: str,
         balance.withdraw(50)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    # Формируем payload для RPC-запроса
+    payload = {
+        "user_id": user_id,
+        "budget_amount": budget_amount,
+        "preferences": preferences
+    }
+
+    rpc_client = PredictionRpcClient()
+    result = rpc_client.call(payload)
 
     # Создаем задачу предсказания
     task = create_prediction_task(session, user_id, budget_amount, preferences)

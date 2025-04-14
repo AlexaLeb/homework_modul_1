@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, Session, create_engine
 
 from .config import get_settings
-from models.crud import balance, mlmodel, predicitonHistory, predictionresult, predictiontask, transaction, user
+from models.crud import balance, mlmodel, prediciton_history, prediction_result, prediction_task, transaction, user
 
 
 # Создаем движок на основе URL, полученного из настроек
@@ -29,7 +29,7 @@ def init_db():
     user.create_user(session, 'Admin@demo.ru', '13', True)
 
     dmb = balance.create(session, user_id=alex.id, initial_amount=1000)
-    balance.create(session, user_id=user.get_by_email(session, 'Nasta').id, initial_amount=800)
+    balance.create(session, user_id=user.get_by_email(session, 'Admin@demo.ru').id, initial_amount=800)
     alex.balance = dmb
 
 

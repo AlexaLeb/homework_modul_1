@@ -27,6 +27,15 @@ services:
       - ./data/rabbitmq:/var/lib/rabbitmq
     restart: on-failure
 
+ worker:
+    build: ./app
+    command: python ./worker.py
+    depends_on:
+      - rabbitmq
+      - database
+    volumes:
+      - ./app:/app
+
  database:
    image: postgres:latest
    environment:
