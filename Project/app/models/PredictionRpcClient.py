@@ -18,7 +18,7 @@ class PredictionRpcClient:
         )
         self.channel = self.connection.channel()
         # Объявляем уникальную временную очередь для получения ответов
-        result = self.channel.queue_declare(queue='My queue', exclusive=True)
+        result = self.channel.queue_declare(queue='prediction_tasks')
         self.callback_queue = result.method.queue
         self.channel.basic_consume(
             queue=self.callback_queue,
@@ -36,7 +36,7 @@ class PredictionRpcClient:
         # Публикуем сообщение в очередь "prediction_rpc_queue"
         self.channel.basic_publish(
             exchange='',
-            routing_key='prediction_rpc_queue',
+            routing_key='prediction_tasks',
             properties=pika.BasicProperties(
                 reply_to=self.callback_queue,
                 correlation_id=self.corr_id,
