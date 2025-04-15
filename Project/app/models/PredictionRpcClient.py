@@ -14,11 +14,11 @@ class PredictionRpcClient:
     def __init__(self):
         # В docker-compose имя сервиса RabbitMQ обычно: "rabbitmq"
         self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host="rabbitmq")
+            pika.ConnectionParameters(host="rabbitmq", heartbeat=600)
         )
         self.channel = self.connection.channel()
         # Объявляем уникальную временную очередь для получения ответов
-        result = self.channel.queue_declare(queue='prediction_tasks')
+        result = self.channel.queue_declare(queue='prediction_tasks', durable=True)
         self.callback_queue = result.method.queue
         self.channel.basic_consume(
             queue=self.callback_queue,
