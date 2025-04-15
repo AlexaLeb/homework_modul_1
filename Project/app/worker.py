@@ -17,18 +17,37 @@ def callback(ch, method, properties, body):
         print("Ошибка обработки сообщения:", e)
         ch.basic_ack(delivery_tag=method.delivery_tag)
         return
-
     # Создаем сессию для работы с БД; используем context manager для автоматического закрытия
     session = next(get_session())
     # Поскольку алгоритм предсказания отсутствует, мы просто формируем фиктивный результат:
     simulated_result = f"Simulated result for budget {budget_amount} and preferences {preferences}"
-
+    print("щас напечатаем")
     # Вызываем функцию, которая обрабатывает задачу предсказания:
-    print(create_prediction_task(session, user_id, budget_amount, preferences, simulated_result))
+    # create_prediction_task(session, user_id, budget_amount, preferences, simulated_result)
+
+
+    # Формирование ответа: создаем JSON-объект с результатом предсказания
+    response = json.dumps({
+        "predicted_result": simulated_result
+    })
+    # Если в свойствах сообщения указан reply_to, отправляем ответ обратно
+    if properties.reply_to:
+        ch.basic_publish(
+            exchange='',
+            routing_key=properties.reply_to,
+            properties=pika.BasicProperties(
+                correlation_id=properties.correlation_id
+            ),
+            body=response
+        )
+        print("Ответ отправлен в очередь:", properties.reply_to)
+
 
     # Подтверждаем получение сообщения
     ch.basic_ack(delivery_tag=method.delivery_tag)
     print("\n\n\n\n\n\n\n\nЗадача обработана, баланс обновлен, транзакция и результат сохранены.\n\n\n\n\n\n")
+
+    create_prediction_task(session, user_id, budget_amount, preferences, simulated_result)
 
 
 def create_connection(max_attempts=10):
