@@ -1,8 +1,8 @@
 import json
 import time
 import pika
-from database.database import get_session, engine
-from models.crud.prediction_task import create as create_prediction_task
+from database.database import get_session
+from models.crud.prediction_result import create as create_prediction_result
 
 
 def callback(ch, method, properties, body):
@@ -47,7 +47,7 @@ def callback(ch, method, properties, body):
     ch.basic_ack(delivery_tag=method.delivery_tag)
     print("\n\n\n\n\n\n\n\nЗадача обработана, баланс обновлен, транзакция и результат сохранены.\n\n\n\n\n\n")
 
-    create_prediction_task(session, user_id, budget_amount, preferences, simulated_result)
+    create_prediction_result(session, user_id, budget_amount, preferences, simulated_result)
 
 
 def create_connection(max_attempts=10):

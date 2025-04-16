@@ -46,25 +46,26 @@ async def predict(user_id: int, budget_amount: float, preferences: str,
         "budget_amount": budget_amount,
         "preferences": preferences
     }
-
+    print('rpc create')
     rpc_client = PredictionRpcClient()
     result = rpc_client.call(payload)
 
     # Создаем задачу предсказания
-    task = create_prediction_task(session, user_id, budget_amount, preferences)
+    # task = create_prediction_task(session, user_id, budget_amount, preferences)
 
     # Симулируем алгоритм предсказания: создаем фиктивный результат (например, простую строку)
-    dummy_result = f"{{'predicted': 'dummy result for budget {budget_amount}'}}"
-    result = create_prediction_result(session, task.id, dummy_result)
-
-    session.commit()
+    # dummy_result = f"{{'predicted': 'dummy result for budget {budget_amount}'}}"
+    # result = create_prediction_result(session, task.id, dummy_result)
+    print('sesson coomit')
+    # session.commit()
 
     return {
         "message": "Prediction task created",
-        "task_id": task.id,
-        "result": result.recommended_distribution,
+        # "task_id": task.id,
+        "result": result,
         "new_balance": balance.amount
     }
+
 
 
 @router.get("/prediction/history")

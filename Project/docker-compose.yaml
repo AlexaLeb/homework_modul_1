@@ -26,15 +26,17 @@ services:
     volumes:
       - ./data/rabbitmq:/var/lib/rabbitmq
     restart: on-failure
-
  worker:
-    build: ./app
-    command: python ./worker.py
-    depends_on:
-      - rabbitmq
-      - database
-    volumes:
-      - ./app:/app
+  build: ./app
+  command: python -m worker.worker  # ✅ запускаем как модуль
+  working_dir: /app                     # ✅ рабочая директория — корень проекта
+  environment:
+    - PYTHONPATH=/app                   # ✅ чтобы Python знал, где корень пакета
+  depends_on:
+     - rabbitmq
+     - database
+  volumes:
+    - ./app:/app
 
  database:
    image: postgres:latest
