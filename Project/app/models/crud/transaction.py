@@ -1,4 +1,4 @@
-from ..Transaction import Transaction
+from models.Transaction import Transaction
 
 
 def create(session, user_id: int, transaction_type: str, amount: float):

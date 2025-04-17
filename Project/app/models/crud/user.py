@@ -1,4 +1,4 @@
-from ..User import User
+from models.User import User
 
 def create_user(session, email: str, password: str, is_admin: bool = False):
     """

@@ -1,4 +1,4 @@
-from ..Balance import Balance
+from models.Balance import Balance
 
 
 def create(session, user_id: int, initial_amount: float = 0.0):

@@ -85,6 +85,7 @@ def main():
         channel.stop_consuming()
     finally:
         connection.close()
+        print('\n\n\nconnection closed\n\n\n')
 
 
 if __name__ == "__main__":

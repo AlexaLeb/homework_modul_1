@@ -6,7 +6,6 @@ from models.User import User
 from typing import List
 
 
-
 router = APIRouter()
 
 
