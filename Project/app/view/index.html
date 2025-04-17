@@ -31,10 +31,21 @@
     </p>
 
     {% if user %}
-        <a href="login/login" class="btn">Войти</a>
+    <h2>You are logged in :)</h2>
+    <p>
+        Hi {{ user }}! You are logged in, so you can access the private
+        page. <a href="/private">here</a>!
+        <a href="api/balance" class="btn">Перейти в кабинет</a>
+        <a href="api/model" class="btn secondary">Предсказание</a>
+    </p>
     {% else %}
-        <a href="balance/balance" class="btn">Перейти в кабинет</a>
-        <a href="/model" class="btn secondary">Предсказание</a>
+        <h2>You are NOT logged in :(</h2>
+    <p>
+        Hello stranger. You are not logged. Please follow the link to
+        <a href="/login/login" class="btn">login</a>
+        or
+        <a href="/api/users/signup" class="btn">create an account</a>
+    </p>
     {% endif %}
 </div>
 

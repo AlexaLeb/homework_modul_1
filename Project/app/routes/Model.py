@@ -1,11 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
 
 # Импорт сервисных функций для предсказаний и баланса
 from models.crud.prediction_task import create as create_prediction_task, \
     get_by_user_id as get_prediction_tasks_by_user
 from models.crud.prediction_result import create as create_prediction_result
 from models.crud.balance import get_by_user_id as get_balance, create as create_balance
+from models.crud.user import get_by_email
+from auth.auth import authenticate_cookie
+from fastapi.templating import Jinja2Templates
 
 # Зависимость для получения сессии базы данных
 from database.database import get_session
@@ -13,16 +16,22 @@ from database.database import get_session
 from models.PredictionRpcClient import PredictionRpcClient
 
 router = APIRouter()
+templates = Jinja2Templates(directory="view")
 
 
-@router.post("/predict")
-async def predict(user_id: int, budget_amount: float, preferences: str,
-                  session: Session = Depends(get_session)) -> dict:
+@router.post("/")
+async def predict(request: Request, budget_amount: float = Form(...), preferences:  str   = Form(...), session: Session = Depends(get_session),
+                  user:str=Depends(authenticate_cookie)) -> dict:
     """
     Назначает задачу на предсказание для пользователя.
     За каждое предсказание списывается 50 баллов с баланса.
     Создает задачу и симулирует результат предсказания.
     """
+    context = {
+        "user": user,
+        "request": request
+    }
+    user_id = get_by_email(session, user).id
     # Получаем баланс пользователя; если баланс не существует, создаем его с начальным значением 0.0
     balance = get_balance(session, user_id)
     if not balance:
@@ -59,19 +68,34 @@ async def predict(user_id: int, budget_amount: float, preferences: str,
     print('sesson coomit')
     # session.commit()
 
-    return {
-        "message": "Prediction task created",
-        # "task_id": task.id,
-        "result": result,
-        "new_balance": balance.amount
-    }
+    return templates.TemplateResponse(
+        "model.html",
+        {
+            "request": request,
+            "user": user,
+            "result": result,
+            "new_balance": balance.amount
+        }
+    )
 
 
-
-@router.get("/prediction/history")
-async def prediction_history(user_id: int, session: Session = Depends(get_session)) -> dict:
+@router.get("/")
+async def prediction_history(request: Request, session: Session = Depends(get_session),
+                  user:str=Depends(authenticate_cookie)) -> dict:
     """
     Возвращает историю предсказаний для указанного пользователя.
     """
+    context = {
+        "user": user,
+        "request": request
+    }
+    user_id = get_by_email(session, user).id
     tasks = get_prediction_tasks_by_user(session, user_id)
-    return {"user_id": user_id, "prediction_history": tasks}
+    return templates.TemplateResponse(
+        "model.html",
+        {
+            "request": request,
+            "user": user,
+            "prediction_history": tasks
+        }
+    )

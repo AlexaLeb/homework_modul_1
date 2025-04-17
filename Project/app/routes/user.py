@@ -1,30 +1,81 @@
-from fastapi import APIRouter, Body, HTTPException, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from database.database import get_session
+from services.loginform import LoginForm
 from models.crud.user import create_user, get_by_email, get_all_users
 from models.User import User
 from typing import List
-
+from models.crud.user import get_by_email
+from auth.auth import authenticate_cookie
+from fastapi.templating import Jinja2Templates
+from models.crud.balance import get_by_user_id as get_balance, create as create_balance
 
 router = APIRouter()
+templates = Jinja2Templates(directory="view")
 
 
-@router.post("/signup")
-async def signup(username: str, password: str, session: Session = Depends(get_session)) -> dict:
+@router.get("/signup", response_class=HTMLResponse)
+async def signup_get(request: Request):
     """
-    Регистрирует нового пользователя с указанными username и password.
+    Показывает форму регистрации.
     """
-    # Проверяем, не существует ли пользователь с таким username (email)
-    existing_user = get_by_email(session, username)
-    if existing_user is not None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="User with supplied username already exists"
+    return templates.TemplateResponse(
+        "users.html",
+        {"request": request, "errors": [], "username": ""}
+    )
+
+
+@router.post("/signup", response_class=HTMLResponse)
+async def signup_post(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    session: Session = Depends(get_session)
+):
+    """
+    Обрабатывает форму регистрации: создаёт нового пользователя или
+    рендерит форму снова с ошибкой.
+    """
+    errors = []
+
+    # Проверяем, не занят ли логин
+    if get_by_email(session, username):
+        errors.append("Пользователь с таким email уже существует")
+
+    if errors:
+        # вернём форму обратно с текстом ошибки и введённым username
+        return templates.TemplateResponse(
+            "users.html",
+            {"request": request, "errors": errors, "username": username}
         )
 
-    # Создаём пользователя
+    # создаём реально
     create_user(session, username, password)
-    return {"message": "User successfully registered"}
+    user_id = get_by_email(session, username).id
+    create_balance(session, user_id, initial_amount=0.0)
+
+
+    # после успешной регистрации делаем редирект на страницу входа
+    return RedirectResponse(url="/login/login", status_code=status.HTTP_302_FOUND)
+
+
+# @router.post("/signup")
+# async def signup(username: str, password: str, session: Session = Depends(get_session)) -> dict:
+#     """
+#     Регистрирует нового пользователя с указанными username и password.
+#     """
+#     # Проверяем, не существует ли пользователь с таким username (email)
+#     existing_user = get_by_email(session, username)
+#     if existing_user is not None:
+#         raise HTTPException(
+#             status_code=status.HTTP_409_CONFLICT,
+#             detail="User with supplied username already exists"
+#         )
+#
+#     # Создаём пользователя
+#     create_user(session, username, password)
+#     return {"message": "User successfully registered"}
 
 @router.post("/signin")
 async def signin(username: str, password: str, session: Session = Depends(get_session)) -> dict:

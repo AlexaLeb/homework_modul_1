@@ -11,8 +11,6 @@ from models.Balance import Balance
 if __name__ == "__main__":
 
     settings = get_settings()
-    print()
-    print()
     print(settings.DB_HOST)
     print(settings.DB_NAME)
 

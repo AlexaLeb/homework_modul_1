@@ -3,7 +3,7 @@ import time
 import pika
 from database.database import get_session
 from models.crud.prediction_result import create as create_prediction_result
-
+from models.crud.prediction_task import create as create_prediction_task
 
 def callback(ch, method, properties, body):
     print("Получено сообщение:", body)
@@ -24,7 +24,8 @@ def callback(ch, method, properties, body):
     print("щас напечатаем")
     # Вызываем функцию, которая обрабатывает задачу предсказания:
     # create_prediction_task(session, user_id, budget_amount, preferences, simulated_result)
-
+    task = create_prediction_task(session, user_id, budget_amount, preferences)
+    create_prediction_result(session, task.id, simulated_result)
 
     # Формирование ответа: создаем JSON-объект с результатом предсказания
     response = json.dumps({
@@ -47,7 +48,6 @@ def callback(ch, method, properties, body):
     ch.basic_ack(delivery_tag=method.delivery_tag)
     print("\n\n\n\n\n\n\n\nЗадача обработана, баланс обновлен, транзакция и результат сохранены.\n\n\n\n\n\n")
 
-    create_prediction_result(session, user_id, budget_amount, preferences, simulated_result)
 
 
 def create_connection(max_attempts=10):
@@ -83,11 +83,22 @@ def main():
     except KeyboardInterrupt:
         print("Worker остановлен вручную.")
         channel.stop_consuming()
-    finally:
         connection.close()
-        print('\n\n\nconnection closed\n\n\n')
+        print("connection closed")
+    except Exception as err:
+        # Ловим все другие ошибки, логируем и пробуем заново
+        print("Unexpected error in consumer:", err)
+        # не закрываем connection, а, например, делаем reconnect
+    # без finally — чтобы после первой задачи не закрывать автоматически
 
 
 if __name__ == "__main__":
     print('\n\n\nworker is here\n\n\n')
-    main()
+    while True:
+        try:
+            main()  # запускает потребителя, блокирует на start_consuming()
+        except Exception as err:
+            print("Consumer died, reconnecting in 5s:", err)
+            time.sleep(5)
+        else:
+            break  # выйдем из цикла, если main() завершился нормально (только по Ctrl+C)
