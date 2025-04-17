@@ -8,6 +8,17 @@ def create(session, user_id: int, initial_amount: float = 0.0):
     return balance
 
 
+def update_balance(session, balance: Balance) -> Balance:
+    """
+    Принимает уже модифицированный объект Balance,
+    сохраняет его в БД и возвращает обновлённый экземпляр.
+    """
+    session.add(balance)
+    session.commit()
+    session.refresh(balance)
+    return balance
+
+
 def get_all(session):
     return session.query(Balance).all()
 

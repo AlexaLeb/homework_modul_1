@@ -18,7 +18,7 @@ class PredictionRpcClient:
         )
         self.channel = self.connection.channel()
         # Объявляем уникальную временную очередь для получения ответов
-        result = self.channel.queue_declare(queue='prediction_tasks', durable=True)
+        result = self.channel.queue_declare(queue='', exclusive=True)
         self.callback_queue = result.method.queue
         self.channel.basic_consume(
             queue=self.callback_queue,

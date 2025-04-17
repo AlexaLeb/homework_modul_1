@@ -19,9 +19,11 @@ class Balance(SQLModel, table=True):
     def withdraw(self, amount: float):
         if self.amount >= amount:
             self.amount -= amount
-            print(self.amount)
+            print(f'баланс теперь - {self.amount}')
         else:
             raise Exception("Недостаточно средств для списания")
+
+
 
     def get_amount(self) -> float:
         return self.amount

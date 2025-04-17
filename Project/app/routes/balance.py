@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
 from sqlalchemy.orm import Session
 from database.database import get_session
-from models.crud.balance import get_by_user_id as get_balance, create as create_balance
+from models.crud.balance import get_by_user_id as get_balance, create as create_balance, update_balance
 from models.crud.transaction import create as create_transaction
 from models.crud.user import get_by_email
 from auth.auth import authenticate_cookie
@@ -56,11 +56,14 @@ async def deposit_balance(
     }
     user_id = get_by_email(session, user).id
     balance = get_balance(session, user_id)
+    print(f"Баланс пользователя - {balance}")
     if not balance:
         balance = create_balance(session, user_id, initial_amount=0.0)
 
     try:
         balance.deposit(amount)
+        balance = update_balance(session, balance)
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

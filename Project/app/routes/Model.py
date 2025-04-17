@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
 from models.crud.prediction_task import create as create_prediction_task, \
     get_by_user_id as get_prediction_tasks_by_user
 from models.crud.prediction_result import create as create_prediction_result
-from models.crud.balance import get_by_user_id as get_balance, create as create_balance
+from models.crud.balance import get_by_user_id as get_balance, create as create_balance, update_balance
 from models.crud.user import get_by_email
 from auth.auth import authenticate_cookie
 from fastapi.templating import Jinja2Templates
@@ -46,6 +46,7 @@ async def predict(request: Request, budget_amount: float = Form(...), preference
     # Списываем 50 баллов с баланса
     try:
         balance.withdraw(50)
+        balance = update_balance(session, balance)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
