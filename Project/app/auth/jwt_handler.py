@@ -7,6 +7,7 @@ from database.config import get_settings
 settings = get_settings()
 SECRET_KEY = settings.SECRET_KEY
 
+
 def create_access_token(user: str) -> str:
     payload = {
     "user": user,
@@ -15,7 +16,14 @@ def create_access_token(user: str) -> str:
     token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
     return token
 
+
 def verify_access_token(token: str) -> dict:
+    # 1) убираем возможные кавычки вокруг
+    if token.startswith('"') and token.endswith('"'):
+        token = token[1:-1]
+    # 2) убираем префикс Bearer
+    if token.lower().startswith("bearer "):
+        token = token.split(" ", 1)[1]
     try:
         data = jwt.decode(token, SECRET_KEY,
         algorithms=["HS256"])
