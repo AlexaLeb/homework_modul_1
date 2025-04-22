@@ -1,12 +1,12 @@
 from sqlmodel import Session
 from models.User import User
 from models.Balance import Balance
-from models.crud.balance import create as bl_creaate, update_balance, get_all, get_by_user_id as get_by_user_id_bl
+from models.crud.balance import create as bl_create, update_balance, get_all as get_all_bl, get_by_user_id as get_by_user_id_bl
 import pytest
 from models.Prediction_result import PredictionResult
-from models.crud.prediction_result import create as pr_create, get_all, get_by_task_id
+from models.crud.prediction_result import create as pr_create, get_all as get_all_pr, get_by_task_id
 from models.Prediction_task import PredictionTask
-from models.crud.prediction_task import create as pt_create, get_all, get_by_user_id as get_by_user_id_pt
+from models.crud.prediction_task import create as pt_create, get_all as get_all_pt, get_by_user_id as get_by_user_id_pt
 
 
 """
@@ -30,9 +30,9 @@ def test_create_user(session: Session):
 """
 
 
-def test_create_and_get_by_user_id(session: Session):
+def test_create_balance_and_get_by_user_id(session: Session):
     # создаём новый баланс
-    bal = bl_creaate(session, user_id=42, initial_amount=123.45)
+    bal = bl_create(session, user_id=42, initial_amount=123.45)
     assert isinstance(bal, Balance)
     assert bal.user_id == 42
     assert bal.amount == pytest.approx(123.45)
@@ -46,7 +46,7 @@ def test_create_and_get_by_user_id(session: Session):
 
 def test_update_balance(session: Session):
     # создаём и тут же меняем amount
-    bal = bl_creaate(session, user_id=7, initial_amount=10.0)
+    bal = bl_create(session, user_id=7, initial_amount=10.0)
     bal.amount += 15.0
     # сохраняем через CRUD‑метод
     updated = update_balance(session, bal)
@@ -58,12 +58,11 @@ def test_update_balance(session: Session):
     assert fetched.amount == pytest.approx(25.0)
 
 
-def test_get_all(session: Session):
+def test_get_all_balance(session: Session):
     # заводим две записи
-    b1 = bl_creaate(session, user_id=1, initial_amount=1.0)
-    b2 = bl_creaate(session, user_id=2, initial_amount=2.0)
-
-    all_bals = get_all(session)
+    b1 = bl_create(session, user_id=1, initial_amount=1.0)
+    b2 = bl_create(session, user_id=2, initial_amount=2.0)
+    all_bals = get_all_bl(session)
     # по крайней мере две записи, и среди них наши
     assert len(all_bals) >= 2
     ids = {b.id for b in all_bals}
@@ -81,17 +80,7 @@ def test_get_by_user_id_nonexistent(session: Session):
 """
 
 
-@pytest.fixture(autouse=True)
-def cleanup_results(session: Session):
-    # очищаем таблицу перед каждым тестом
-    session.query(PredictionResult).delete()
-    session.commit()
-    yield
-    session.query(PredictionResult).delete()
-    session.commit()
-
-
-def test_create_and_get_by_task_id(session: Session):
+def test_create_prediction_and_get_by_task_id(session: Session):
     # создаём новую запись
     res = pr_create(session, task_id=123, recommended_distribution="{'a':10,'b':20}")
     assert isinstance(res, PredictionResult)
@@ -105,12 +94,12 @@ def test_create_and_get_by_task_id(session: Session):
     assert fetched.recommended_distribution == res.recommended_distribution
 
 
-def test_get_all(session: Session):
+def test_get_all_tasks(session: Session):
     # заводим две разных записи
     r1 = pr_create(session, task_id=1, recommended_distribution="{'x':1}")
     r2 = pr_create(session, task_id=2, recommended_distribution="{'y':2}")
 
-    all_results = get_all(session)
+    all_results = get_all_pr(session)
     # как минимум две — наши
     assert len(all_results) >= 2
     ids = {r.id for r in all_results}
@@ -127,19 +116,7 @@ def test_get_by_task_id_nonexistent(session: Session):
 """
 
 
-@pytest.fixture(autouse=True)
-def cleanup_tasks(session: Session):
-    """
-    Очищаем таблицу prediction_tasks перед и после каждого теста.
-    """
-    session.query(PredictionTask).delete()
-    session.commit()
-    yield
-    session.query(PredictionTask).delete()
-    session.commit()
-
-
-def test_create_and_get_by_user_id(session: Session):
+def test_create_task_and_get_by_user_id(session: Session):
     # создаём задачу без fake‑возврата
     task = pt_create(session, user_id=7, budget_amount=100.0, preferences="{'a':1}")
     assert isinstance(task, PredictionTask)
@@ -165,11 +142,11 @@ def test_create_with_fake(session: Session):
     assert fake == "dummy"
 
 
-def test_get_all(session: Session):
+def test_get_all_predict(session: Session):
     # заводим две задачи для разных user_id
     t1 = pt_create(session, user_id=1, budget_amount=10.0, preferences="{}")
     t2 = pt_create(session, user_id=2, budget_amount=20.0, preferences="{}")
-    all_tasks = get_all(session)
+    all_tasks = get_all_pt(session)
     # как минимум две
     assert len(all_tasks) >= 2
     ids = {t.id for t in all_tasks}
@@ -180,3 +157,4 @@ def test_get_all(session: Session):
 def test_get_by_user_id_no_tasks(session: Session):
     # для несуществующего пользователя список пуст
     assert get_by_user_id_pt(session, user_id=9999) == []
+

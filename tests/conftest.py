@@ -11,6 +11,8 @@ from models.User import User
 from models.crud.user import create_user
 from auth.auth import authenticate
 from models.Balance import Balance
+from models.Prediction_task import PredictionTask
+from models.Prediction_result import PredictionResult
 
 
 @pytest.fixture(name="session")
@@ -60,3 +62,25 @@ def demo_user(session):
     # прямо сохраняем пользователя через CRUD
     user = create_user(session, email="alice@example.com", password="secret")
     return user
+
+
+
+@pytest.fixture(autouse=True)
+def cleanup_tasks(session: Session):
+    """
+    Очищаем таблицу prediction_tasks перед и после каждого теста.
+    """
+    session.query(PredictionTask).delete()
+    session.commit()
+    yield
+    session.query(PredictionTask).delete()
+    session.commit()
+
+@pytest.fixture(autouse=True)
+def cleanup_results(session: Session):
+    # очищаем таблицу перед каждым тестом
+    session.query(PredictionResult).delete()
+    session.commit()
+    yield
+    session.query(PredictionResult).delete()
+    session.commit()

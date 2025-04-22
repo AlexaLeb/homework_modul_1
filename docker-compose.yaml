@@ -8,6 +8,7 @@ services:
   - ./app/.env
   volumes:
     - ./app:/app
+    - ./tests:/app/test
 
  web:
   image: nginx:latest
