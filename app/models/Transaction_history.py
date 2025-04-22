@@ -10,6 +10,3 @@ class PredictionHistory(SQLModel, table=True):
     user_id: Optional[int] = Field(default=None, foreign_key="users.id")
     details: Optional[str] = Field(default=None, nullable=True)  # Детали предсказания (например, JSON)
     timestamp: datetime = Field(default_factory=datetime.utcnow)
-
-
-

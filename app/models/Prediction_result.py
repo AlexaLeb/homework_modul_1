@@ -12,4 +12,3 @@ class PredictionResult(SQLModel, table=True):
     timestamp: datetime = Field(default_factory=datetime.now)
 
     task: Optional["PredictionTask"] = Relationship(back_populates="result")
-

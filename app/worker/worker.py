@@ -4,10 +4,13 @@ import pika
 from database.database import get_session
 from models.crud.prediction_result import create as create_prediction_result
 from models.crud.prediction_task import create as create_prediction_task
+from logger.logging import get_logger
+
+logger = get_logger(logger_name=__name__)
 
 
 def callback(ch, method, properties, body):
-    print("Получено сообщение:", body)
+    logger.info(f'Получено сообщение {body}')
     try:
         # Предположим, сообщение приходит как JSON
         message = json.loads(body)
@@ -15,14 +18,14 @@ def callback(ch, method, properties, body):
         budget_amount = message.get("budget_amount")
         preferences = message.get("preferences")
     except Exception as e:
-        print("Ошибка обработки сообщения:", e)
+        logger.error(f'Ошибка {e}')
         ch.basic_ack(delivery_tag=method.delivery_tag)
         return
     # Создаем сессию для работы с БД; используем context manager для автоматического закрытия
     session = next(get_session())
     # Поскольку алгоритм предсказания отсутствует, мы просто формируем фиктивный результат:
     simulated_result = f"Simulated result for budget {budget_amount} and preferences {preferences}"
-    print("щас напечатаем")
+    logger.info("Симулирован результат работы алгоритма")
     # Вызываем функцию, которая обрабатывает задачу предсказания:
     # create_prediction_task(session, user_id, budget_amount, preferences, simulated_result)
     task = create_prediction_task(session, user_id, budget_amount, preferences)
@@ -42,22 +45,21 @@ def callback(ch, method, properties, body):
             ),
             body=response
         )
-        print("Ответ отправлен в очередь:", properties.reply_to)
-
+        logger.info("Ответ отправлен в очередь:", properties.reply_to)
 
     # Подтверждаем получение сообщения
     ch.basic_ack(delivery_tag=method.delivery_tag)
-    print("\n\n\n\n\n\n\n\nЗадача обработана, баланс обновлен, транзакция и результат сохранены.\n\n\n\n\n\n")
+    logger.info("\n\n\n\n\n\n\n\nЗадача обработана, баланс обновлен, транзакция и результат сохранены.\n\n\n\n\n\n")
 
 
 def create_connection(max_attempts=10):
     for attempt in range(max_attempts):
         try:
             connection = pika.BlockingConnection(pika.ConnectionParameters(host="rabbitmq", heartbeat=100))
-            print("Соединение установлено.")
+            logger.info("Соединение установлено.")
             return connection
-        except pika.exceptions.AMQPConnectionError as err:
-            print(f"Попытка {attempt+1}: не удалось установить соединение с RabbitMQ, повтор через 5 секунд...")
+        except pika.exceptions.AMQPConnectionError:
+            logger.warning(f"Попытка {attempt+1}: не удалось установить соединение с RabbitMQ, повтор через 5 секунд...")
             time.sleep(5)
     raise Exception("Не удалось установить соединение с RabbitMQ после нескольких попыток.")
 
@@ -75,30 +77,27 @@ def main():
 
     # Подписываемся на очередь
     channel.basic_consume(queue="prediction_tasks", on_message_callback=callback)
-
-    print("Worker запущен. Ожидаем сообщений...")
+    logger.info("Worker (слушатель) запущен. Ожидаем сообщений...")
 
     try:
         channel.start_consuming()
     except KeyboardInterrupt:
-        print("Worker остановлен вручную.")
+        logger.warning("Worker остановлен вручную.")
         channel.stop_consuming()
         connection.close()
-        print("connection closed")
+        logger.info("соединение закрыто")
     except Exception as err:
-        # Ловим все другие ошибки, логируем и пробуем заново
-        print("Unexpected error in consumer:", err)
-        # не закрываем connection, а, например, делаем reconnect
-    # без finally — чтобы после первой задачи не закрывать автоматически
+        logger.error("Неожиданная ошибка слушателя:", err)
 
 
 if __name__ == "__main__":
-    print('\n\n\nworker is here\n\n\n')
+    logger.info('\n\n\nWorker is here\n\n\n')
     while True:
         try:
             main()  # запускает потребителя, блокирует на start_consuming()
         except Exception as err:
-            print("Consumer died, reconnecting in 5s:", err)
+            logger.error("Worker умер, попытка переподключиться через 5 секунд:", err)
             time.sleep(5)
         else:
-            break  # выйдем из цикла, если main() завершился нормально (только по Ctrl+C)
+            logger.warning('Worker перестал работать')
+            break

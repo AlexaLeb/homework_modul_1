@@ -2,6 +2,9 @@ from sqlmodel import SQLModel, Session, create_engine
 
 from .config import get_settings
 from models.crud import balance, prediciton_history, prediction_result, prediction_task, transaction, user
+from logger.logging import get_logger
+
+logger = get_logger(logger_name=__name__)
 
 
 # Создаем движок на основе URL, полученного из настроек
@@ -11,7 +14,7 @@ engine = create_engine(
     pool_size=5,
     max_overflow=10
 )
-
+logger.info("Создан движок")
 
 # Функция-генератор для получения сессии. Используем with-контекст, чтобы автоматически закрыть сессию.
 def get_session():
@@ -35,4 +38,4 @@ def init_db():
 
     session.commit()
     session.close()
-    print('BD susseced updated')
+    logger.info("База данных собрана с начальными значениями")

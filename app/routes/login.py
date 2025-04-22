@@ -9,10 +9,9 @@ from database.database import get_session
 from services.loginform import LoginForm
 from models.crud import user as UsersService
 from database.config import get_settings
+from logger.logging import get_logger
 
-
-from typing import Dict
-
+logger = get_logger(logger_name=__name__)
 settings = get_settings()
 router = APIRouter()
 hash_password = HashPassword()
@@ -60,11 +59,13 @@ async def login_post(request: Request, session=Depends(get_session)):
             response = RedirectResponse("/", status.HTTP_302_FOUND)
             await login_for_access_token(response=response, form_data=form, session=session)
             form.__dict__.update(msg="Login Successful!")
+            logger.info('Выполнен вход')
             print("[green]Login successful!!!!")
             return response
         except HTTPException:
             form.__dict__.update(msg="")
             form.__dict__.get("errors").append("Incorrect Email or Password")
+            logger.info('Введен неверный пароль')
             return templates.TemplateResponse("login.html", form.__dict__)
     return templates.TemplateResponse("login.html", form.__dict__)
 
@@ -73,4 +74,5 @@ async def login_post(request: Request, session=Depends(get_session)):
 async def login_get():
     response = RedirectResponse(url="/")
     response.delete_cookie(settings.COOKIE_NAME)
+    logger.info('Выполнен выход')
     return response

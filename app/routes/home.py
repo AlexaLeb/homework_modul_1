@@ -13,11 +13,12 @@ from services.loginform import LoginForm
 from models.crud import user as UsersService
 from database.config import get_settings
 from typing import Dict
+from logger.logging import get_logger
 
+logger = get_logger(logger_name=__name__)
 router = APIRouter()
 settings = get_settings()
 templates = Jinja2Templates(directory="view")
-
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -27,11 +28,11 @@ async def index(request: Request):
         user = await authenticate_cookie(token)
     else:
         user = None
-
     context = {
         "user": user,
         "request": request
     }
+    logger.info('Запрос на сайт')
     return templates.TemplateResponse("index.html", context)
 
 
@@ -42,11 +43,6 @@ async def index_private(request: Request, user: str = Depends(authenticate_cooki
         "request": request
     }
     return templates.TemplateResponse("private.html", context)
-
-
-@router.get("/private2")
-async def index_privat2(request: Request, user: str = Depends(authenticate)):
-    return {"user": user}
 
 
 @router.get(

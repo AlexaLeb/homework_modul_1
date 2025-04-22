@@ -19,3 +19,4 @@ passlib
 pytest
 pytest-asyncio
 httpx
+api-analytics

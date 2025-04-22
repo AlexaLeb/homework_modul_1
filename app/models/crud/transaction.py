@@ -1,10 +1,14 @@
 from models.Transaction import Transaction
+from logger.logging import get_logger
+
+logger = get_logger(logger_name=__name__)
 
 
 def create(session, user_id: int, transaction_type: str, amount: float):
     transaction = Transaction(user_id=user_id, transaction_type=transaction_type, amount=amount)
     session.add(transaction)
     session.commit()
+    logger.info("Создана транзакция")
     return transaction
 
 

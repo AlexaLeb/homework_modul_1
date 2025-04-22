@@ -23,8 +23,5 @@ class Balance(SQLModel, table=True):
         else:
             raise Exception("Недостаточно средств для списания")
 
-
-
     def get_amount(self) -> float:
         return self.amount
-

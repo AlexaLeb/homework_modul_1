@@ -10,7 +10,7 @@ class PredictionTask(SQLModel, table=True):
     user_id: Optional[int] = Field(default=None, foreign_key="users.id")
     budget_amount: float = Field(..., nullable=False)
     preferences: str = Field(..., nullable=False)  # Можно хранить JSON или строковое представление
-    status: str = Field(default="NEW")  # Возможные значения: NEW, PROCESSING, COMPLETED, ERROR
+    # status: str = Field(default="NEW")  # Возможные значения: NEW, PROCESSING, COMPLETED, ERROR
     timestamp: datetime = Field(default_factory=datetime.now)
 
     # Связь с результатом (один к одному)

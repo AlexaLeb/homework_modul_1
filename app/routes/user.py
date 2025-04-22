@@ -10,7 +10,9 @@ from models.crud.user import get_by_email
 from auth.auth import authenticate_cookie
 from fastapi.templating import Jinja2Templates
 from models.crud.balance import get_by_user_id as get_balance, create as create_balance
+from logger.logging import get_logger
 
+logger = get_logger(logger_name=__name__)
 router = APIRouter()
 templates = Jinja2Templates(directory="view")
 
@@ -54,28 +56,10 @@ async def signup_post(
     create_user(session, username, password)
     user_id = get_by_email(session, username).id
     create_balance(session, user_id, initial_amount=0.0)
-
-
+    logger.info('Запрос на создание пользователя')
     # после успешной регистрации делаем редирект на страницу входа
     return RedirectResponse(url="/login/login", status_code=status.HTTP_302_FOUND)
 
-
-# @router.post("/signup")
-# async def signup(username: str, password: str, session: Session = Depends(get_session)) -> dict:
-#     """
-#     Регистрирует нового пользователя с указанными username и password.
-#     """
-#     # Проверяем, не существует ли пользователь с таким username (email)
-#     existing_user = get_by_email(session, username)
-#     if existing_user is not None:
-#         raise HTTPException(
-#             status_code=status.HTTP_409_CONFLICT,
-#             detail="User with supplied username already exists"
-#         )
-#
-#     # Создаём пользователя
-#     create_user(session, username, password)
-#     return {"message": "User successfully registered"}
 
 @router.post("/signin")
 async def signin(username: str, password: str, session: Session = Depends(get_session)) -> dict:
@@ -95,6 +79,7 @@ async def signin(username: str, password: str, session: Session = Depends(get_se
             detail="Wrong credentials passed"
         )
     return {"message": "User signed in successfully"}
+
 
 @router.get("/users", response_model=List[User])
 async def get_users(session: Session = Depends(get_session)):

@@ -13,4 +13,3 @@ class Transaction(SQLModel, table=True):
     timestamp: datetime = Field(default_factory=datetime.now)
 
     user: Optional["User"] = Relationship(back_populates="transactions")
-

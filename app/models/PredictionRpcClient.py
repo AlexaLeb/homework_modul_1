@@ -1,9 +1,6 @@
 import json
 import uuid
 import pika
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-
 
 
 class PredictionRpcClient:
