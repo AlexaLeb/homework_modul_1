@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, Session, create_engine
 
 from .config import get_settings
-from models.crud import balance, mlmodel, prediciton_history, prediction_result, prediction_task, transaction, user
+from models.crud import balance, prediciton_history, prediction_result, prediction_task, transaction, user
 
 
 # Создаем движок на основе URL, полученного из настроек

@@ -5,6 +5,7 @@ from database.database import get_session
 from models.crud.prediction_result import create as create_prediction_result
 from models.crud.prediction_task import create as create_prediction_task
 
+
 def callback(ch, method, properties, body):
     print("Получено сообщение:", body)
     try:
@@ -47,7 +48,6 @@ def callback(ch, method, properties, body):
     # Подтверждаем получение сообщения
     ch.basic_ack(delivery_tag=method.delivery_tag)
     print("\n\n\n\n\n\n\n\nЗадача обработана, баланс обновлен, транзакция и результат сохранены.\n\n\n\n\n\n")
-
 
 
 def create_connection(max_attempts=10):

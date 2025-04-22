@@ -4,7 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="09197a67-5437-4354-a2ec-16fc961c7b3d" name="Changes" comment="тесты рабочие" />
+    <list default="true" id="09197a67-5437-4354-a2ec-16fc961c7b3d" name="Changes" comment="тесты рабочие">
+      <change beforePath="$PROJECT_DIR$/app/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/models/crud/mlmodel.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/testing.db" beforeDir="false" afterPath="$PROJECT_DIR$/app/testing.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/tests/conftest.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/tests/conftest.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/worker/worker.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/worker/worker.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -58,6 +64,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "master",
     "last_opened_file_path": "/Users/yulialebedeva/Desktop/PythonProject/Project/app/worker",
     "nodejs_package_manager_path": "npm",
     "vue.rearranger.settings.migration": "true"
@@ -490,7 +497,15 @@
       <option name="project" value="LOCAL" />
       <updated>1745307160092</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="тесты рабочие">
+      <option name="closed" value="true" />
+      <created>1745307474897</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1745307474897</updated>
+    </task>
+    <option name="localTasksCounter" value="33" />
     <servers />
   </component>
   <component name="UnknownFeatures">

@@ -10,11 +10,6 @@ from auth.hash_password import HashPassword
 
 settings = get_settings()
 
-
-@pytest.fixture  # фикстура для тестов
-def client():
-    return TestClient(app)
-
 # === Signup / Signin ===
 
 
@@ -45,14 +40,6 @@ def test_signup_conflict_shows_error(client):
     )
     assert resp.status_code == status.HTTP_200_OK
     assert "Пользователь с таким email уже существует" in resp.text
-
-
-@pytest.fixture
-def demo_user(session):
-    """Создаём демо‑пользователя перед тестами."""
-    # прямо сохраняем пользователя через CRUD
-    user = create_user(session, email="alice@example.com", password="secret")
-    return user
 
 
 def test_token_success(client: TestClient, demo_user):

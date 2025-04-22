@@ -30,19 +30,6 @@ def test_create_user(session: Session):
 """
 
 
-@pytest.fixture(autouse=True)
-def cleanup_balances(session: Session):
-    """
-    Перед каждым тестом очищаем таблицу balances,
-    чтобы тесты были детерминированы.
-    """
-    session.query(Balance).delete()
-    session.commit()
-    yield
-    session.query(Balance).delete()
-    session.commit()
-
-
 def test_create_and_get_by_user_id(session: Session):
     # создаём новый баланс
     bal = bl_creaate(session, user_id=42, initial_amount=123.45)

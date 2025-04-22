@@ -10,18 +10,7 @@ from database.config import get_settings
 from models.User import User
 from models.crud.user import create_user
 from auth.auth import authenticate
-
-import sys
-from pathlib import Path
-
-# # Добавляем корень проекта в PYTHONPATH
-# root = Path(__file__).parent.parent.resolve()
-# if str(root) not in sys.path:
-#     sys.path.append(str(root))
-#
-# # 1) Создаём "in-memory" SQLite для тестов (можно и файл на диске)
-# TEST_DATABASE_URL = "sqlite:///:memory:"
-# engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+from models.Balance import Balance
 
 
 @pytest.fixture(name="session")
@@ -44,3 +33,30 @@ def client_fixture(session: Session):
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def cleanup_balances(session: Session):
+    """
+    Перед каждым тестом очищаем таблицу balances,
+    чтобы тесты были детерминированы.
+    """
+    session.query(Balance).delete()
+    session.commit()
+    yield
+    session.query(Balance).delete()
+    session.commit()
+
+
+@pytest.fixture  # фикстура для тестов
+def client():
+    return TestClient(app)
+
+
+
+@pytest.fixture
+def demo_user(session):
+    """Создаём демо‑пользователя перед тестами."""
+    # прямо сохраняем пользователя через CRUD
+    user = create_user(session, email="alice@example.com", password="secret")
+    return user
